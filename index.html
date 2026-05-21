@@ -1,1421 +1,989 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow">
-    <title>Desafio Prático: Lei de Ohm - Lab de Física</title>
-    <style>
-        /* ==========================================================================
-           1. VARIÁVEIS CSS (DESIGN SYSTEM & MODERN DARK THEME)
-           ========================================================================== */
-        :root {
-            --bg-main: #0b0f19;
-            --bg-card: #151f32;
-            --bg-input: #1e2d4a;
-            --primary: #3b82f6;
-            --primary-hover: #2563eb;
-            --success: #10b981;
-            --success-bg: rgba(16, 185, 129, 0.15);
-            --error: #ef4444;
-            --error-bg: rgba(239, 68, 68, 0.15);
-            --warning: #f59e0b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: #2e3f5f;
-            --font-sans: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
-            --transition-speed: 0.3s;
-        }
-
-        /* ==========================================================================
-           2. RESET E ESTILOS GERAIS
-           ========================================================================== */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: var(--font-sans);
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            line-height: 1.6;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-        }
-
-        /* Container Principal */
-        .app-container {
-            width: 100%;
-            max-width: 900px;
-            margin: auto;
-            padding: 20px;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        /* Transição Suave entre Telas */
-        .screen {
-            display: none;
-            opacity: 0;
-            transform: translateY(15px);
-            transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease;
-            width: 100%;
-        }
-
-        .screen.active {
-            display: flex;
-            flex-direction: column;
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* ==========================================================================
-           3. DASHBOARD HEADER (MÉTRICAS DO ALUNO EM TEMPO REAL)
-           ========================================================================== */
-        .dashboard-header {
-            display: none;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 15px 20px;
-            margin-bottom: 25px;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-        }
-
-        .student-profile {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .avatar-placeholder {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-
-        .student-info h4 {
-            font-size: 1rem;
-            color: var(--text-main);
-        }
-
-        .student-info p {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        .score-badge {
-            background: linear-gradient(135deg, var(--primary), #1d4ed8);
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
-        }
-
-        /* Trilha de Aprendizagem Visual (Progresso de Fases) */
-        .progress-track {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            margin-top: 15px;
-            position: relative;
-            padding-top: 10px;
-        }
-
-        .progress-track::before {
-            content: '';
-            position: absolute;
-            top: 17px;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background-color: var(--border-color);
-            z-index: 1;
-        }
-
-        .progress-step {
-            position: relative;
-            z-index: 2;
-            background-color: var(--bg-card);
-            border: 2px solid var(--border-color);
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            font-weight: bold;
-            transition: all var(--transition-speed);
-        }
-
-        .progress-step.completed {
-            background-color: var(--success);
-            border-color: var(--success);
-        }
-
-        .progress-step.active {
-            background-color: var(--primary);
-            border-color: var(--primary);
-            box-shadow: 0 0 10px var(--primary);
-        }
-
-        /* ==========================================================================
-           4. CARDS, BOTÕES E ELEMENTOS VISUAIS COMUNS
-           ========================================================================== */
-        .card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        .card-header-accent {
-            width: 80px;
-            height: 4px;
-            background-color: var(--primary);
-            border-radius: 2px;
-            margin-bottom: 20px;
-        }
-
-        h1 {
-            font-size: 1.8rem;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-
-        p.subtitle {
-            color: var(--text-muted);
-            margin-bottom: 25px;
-            font-size: 1rem;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        input[type="text"], input[type="email"] {
-            width: 100%;
-            background-color: var(--bg-input);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px 16px;
-            color: var(--text-main);
-            font-size: 1rem;
-            transition: border-color var(--transition-speed);
-        }
-
-        input[type="text"]:focus, input[type="email"]:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .btn {
-            background-color: var(--primary);
-            color: var(--text-main);
-            border: none;
-            border-radius: 8px;
-            padding: 14px 28px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color var(--transition-speed), transform 0.1s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            text-decoration: none;
-        }
-
-        .btn:hover:not(:disabled) {
-            background-color: var(--primary-hover);
-        }
-
-        .btn:active:not(:disabled) {
-            transform: scale(0.98);
-        }
-
-        .btn:disabled {
-            background-color: var(--border-color);
-            color: var(--text-muted);
-            cursor: not-allowed;
-        }
-
-        /* ==========================================================================
-           5. FASE 1 - CHECKLIST DE TEORIA
-           ========================================================================== */
-        .checklist-item {
-            background-color: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 16px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: flex-start;
-            gap: 15px;
-            cursor: pointer;
-            transition: all var(--transition-speed);
-        }
-
-        .checklist-item:hover {
-            border-color: var(--primary);
-            background-color: rgba(59, 130, 246, 0.05);
-        }
-
-        .checklist-item input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            accent-color: var(--primary);
-            cursor: pointer;
-            margin-top: 3px;
-        }
-
-        .checklist-text h3 {
-            font-size: 1rem;
-            margin-bottom: 4px;
-        }
-
-        .checklist-text p {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        /* ==========================================================================
-           6. FASE 2 & 4 - CRONÔMETROS E SELEÇÃO DE QUESTÕES
-           ========================================================================== */
-        .timer-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            border-radius: 10px;
-            padding: 12px 20px;
-            margin-bottom: 25px;
-            font-weight: 600;
-            color: var(--warning);
-        }
-
-        .timer-clock {
-            font-family: monospace;
-            font-size: 1.3rem;
-        }
-
-        .question-card {
-            margin-bottom: 25px;
-        }
-
-        .options-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 20px;
-        }
-
-        .option-btn {
-            background-color: var(--bg-input);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 15px 20px;
-            color: var(--text-main);
-            text-align: left;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .option-btn:hover {
-            border-color: var(--primary);
-            background-color: rgba(59, 130, 246, 0.1);
-        }
-
-        .option-btn.selected {
-            border-color: var(--primary);
-            background-color: var(--primary);
-        }
-
-        .option-btn.correct-feedback {
-            background-color: var(--success) !important;
-            border-color: var(--success) !important;
-        }
-
-        .option-btn.error-feedback {
-            background-color: var(--error) !important;
-            border-color: var(--error) !important;
-        }
-
-        /* ==========================================================================
-           7. FASE 3 - SISTEMA DE ASSOCIAÇÃO DE VARIÁVEIS (WORD MATCH)
-           ========================================================================== */
-        .paragraph-box {
-            background-color: rgba(255, 255, 255, 0.02);
-            border: 1.5px dashed var(--border-color);
-            border-radius: 12px;
-            padding: 24px;
-            font-size: 1.15rem;
-            line-height: 2;
-            margin-bottom: 30px;
-            text-align: justify;
-        }
-
-        /* Palavra ou elemento clicável no texto */
-        .interactive-term {
-            background-color: var(--bg-input);
-            border: 1.5px solid var(--border-color);
-            padding: 2px 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            color: var(--primary);
-            transition: all var(--transition-speed);
-            display: inline-block;
-            margin: 0 4px;
-        }
-
-        .interactive-term:hover {
-            border-color: var(--primary);
-            background-color: rgba(59, 130, 246, 0.15);
-        }
-
-        .interactive-term.selected {
-            background-color: var(--warning);
-            border-color: var(--warning);
-            color: #000;
-        }
-
-        .interactive-term.correct {
-            background-color: var(--success-bg);
-            border-color: var(--success);
-            color: var(--success);
-            cursor: default;
-        }
-
-        .interactive-term.wrong {
-            background-color: var(--error-bg);
-            border-color: var(--error);
-            color: var(--error);
-            animation: shake 0.5s;
-        }
-
-        /* Caixas Alvo das Variáveis */
-        .association-slots {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .association-slot {
-            background-color: var(--bg-card);
-            border: 2px dashed var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            transition: all var(--transition-speed);
-            cursor: pointer;
-            position: relative;
-        }
-
-        .association-slot:hover {
-            border-color: var(--primary);
-        }
-
-        .association-slot.active-receiver {
-            border-color: var(--warning);
-            background-color: rgba(245, 158, 11, 0.05);
-        }
-
-        .association-slot.matched {
-            border-style: solid;
-            background-color: var(--success-bg);
-            border-color: var(--success);
-        }
-
-        .association-slot.wrong-attempt {
-            border-style: solid;
-            background-color: var(--error-bg);
-            border-color: var(--error);
-            animation: shake 0.5s;
-        }
-
-        .slot-title {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 8px;
-        }
-
-        .slot-value {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-main);
-        }
-
-        .feedback-message {
-            text-align: center;
-            font-size: 1rem;
-            font-weight: 600;
-            height: 24px;
-            margin-bottom: 20px;
-        }
-
-        .feedback-message.success { color: var(--success); }
-        .feedback-message.error { color: var(--error); }
-
-        /* Animação Balançar Erro */
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-6px); }
-            40%, 80% { transform: translateX(6px); }
-        }
-
-        /* ==========================================================================
-           8. CERTIFICADO FINAL (SCORE PARA COMPROVANTE)
-           ========================================================================== */
-        .certificate-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px 0;
-        }
-
-        .certificate-card {
-            background: radial-gradient(circle at top left, #1a2c4e, #111a2e);
-            border: 3px solid #f59e0b; /* Moldura Dourada */
-            border-radius: 16px;
-            width: 100%;
-            max-width: 650px;
-            padding: 40px;
-            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.5);
-            text-align: center;
-            position: relative;
-        }
-
-        .certificate-seal {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 20px;
-            background-color: var(--warning);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
-        }
-
-        .certificate-title {
-            font-size: 1.8rem;
-            color: var(--warning);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 15px;
-            font-family: 'Times New Roman', Times, serif;
-        }
-
-        .certificate-subtitle {
-            font-size: 1rem;
-            color: var(--text-muted);
-            margin-bottom: 30px;
-        }
-
-        .certificate-body {
-            font-size: 1.1rem;
-            line-height: 1.7;
-            margin-bottom: 30px;
-            color: var(--text-main);
-        }
-
-        .student-highlight {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--text-main);
-            border-bottom: 1px solid var(--border-color);
-            display: inline-block;
-            padding-bottom: 5px;
-            margin: 10px 0;
-        }
-
-        .points-highlight {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--success);
-            margin: 15px 0;
-        }
-
-        .certificate-meta {
-            border-top: 1px solid var(--border-color);
-            padding-top: 20px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            text-align: left;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        .validation-code {
-            grid-column: span 2;
-            text-align: center;
-            background-color: var(--bg-main);
-            padding: 8px;
-            border-radius: 6px;
-            font-family: monospace;
-            border: 1px solid var(--border-color);
-            margin-top: 10px;
-        }
-
-        .btn-print-group {
-            margin-top: 30px;
-            display: flex;
-            justify-content: center;
-        }
-
-        /* ==========================================================================
-           9. RESPONSIVIDADE (MEDIA QUERIES)
-           ========================================================================== */
-        @media (max-width: 600px) {
-            .app-container {
-                padding: 10px;
-            }
-            .card {
-                padding: 20px;
-            }
-            h1 {
-                font-size: 1.5rem;
-            }
-            .certificate-card {
-                padding: 25px 15px;
-            }
-            .certificate-meta {
-                grid-template-columns: 1fr;
-            }
-            .validation-code {
-                grid-column: span 1;
-            }
-        }
-
-        /* ==========================================================================
-           10. ENGINE DE IMPRESSÃO (PERFEITO PARA PDF)
-           ========================================================================== */
-        @media print {
-            body {
-                background: #ffffff !important;
-                color: #000000 !important;
-                padding: 0;
-                margin: 0;
-            }
-            
-            /* Ocultar toda a estrutura do site (exceto o Certificado) */
-            .dashboard-header,
-            .screen:not(#screen-final),
-            .btn-print-group,
-            .no-print,
-            header,
-            footer {
-                display: none !important;
-            }
-
-            .app-container {
-                padding: 0;
-                margin: 0;
-                max-width: 100%;
-            }
-
-            .screen#screen-final {
-                display: block !important;
-                opacity: 1 !important;
-                transform: none !important;
-            }
-
-            .certificate-container {
-                padding: 0;
-            }
-
-            /* Reestilização do Card do Certificado para Impressão limpa */
-            .certificate-card {
-                border: 4px double #000000 !important;
-                background: #ffffff !important;
-                color: #000000 !important;
-                box-shadow: none !important;
-                width: 100% !important;
-                max-width: 650px !important;
-                margin: 0 auto !important;
-                padding: 30px !important;
-                box-sizing: border-box;
-            }
-
-            .certificate-seal {
-                background-color: #000000 !important;
-                box-shadow: none !important;
-            }
-
-            .certificate-seal svg {
-                fill: #ffffff !important;
-            }
-
-            .certificate-title {
-                color: #000000 !important;
-            }
-
-            .student-highlight {
-                color: #000000 !important;
-                border-bottom: 2px solid #000000 !important;
-            }
-
-            .points-highlight {
-                color: #000000 !important;
-            }
-
-            .certificate-meta, 
-            .certificate-meta * {
-                color: #333333 !important;
-                border-top-color: #000000 !important;
-            }
-
-            .validation-code {
-                background-color: #f3f4f6 !important;
-                border-color: #000000 !important;
-                color: #000000 !important;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Lei de Ohm — Módulo Educacional</title>
+
+<!-- KaTeX para renderização matemática via CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --bg:#f4f3ef;
+  --surface:#ffffff;
+  --border:rgba(0,0,0,0.09);
+  --border-md:rgba(0,0,0,0.16);
+  --text:#1a1a18;
+  --muted:#6b6b65;
+  --hint:#a0a09a;
+  --accent:#1d4ed8;
+  --accent-lt:#eff4ff;
+  --green:#16a34a;
+  --green-lt:#f0fdf4;
+  --amber:#b45309;
+  --amber-lt:#fffbeb;
+  --red:#dc2626;
+  --red-lt:#fef2f2;
+  --r:12px;--rsm:8px;--rxs:6px;
+  --font:'DM Sans',system-ui,sans-serif;
+  --mono:'DM Mono',monospace;
+}
+
+body.dark-theme {
+  --bg:#0f172a;
+  --surface:#1e293b;
+  --border:rgba(255,255,255,0.08);
+  --border-md:rgba(255,255,255,0.16);
+  --text:#f8fafc;
+  --muted:#94a3b8;
+  --hint:#64748b;
+  --accent:#3b82f6;
+  --accent-lt:rgba(59,130,246,0.15);
+  --green:#10b981;
+  --green-lt:rgba(16, 185, 129, 0.15);
+  --amber:#f59e0b;
+  --amber-lt:rgba(245, 158, 11, 0.15);
+  --red:#ef4444;
+  --red-lt:rgba(239, 68, 68, 0.15);
+}
+
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;min-height:100vh;transition:background 0.3s, color 0.3s}
+
+.wrap{max-width:640px;margin:0 auto;padding:20px 16px 40px}
+
+/* THEME CONTROLLER */
+.header-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+/* TOP BAR */
+#top-bar{display:none;margin-bottom:20px}
+.user-row{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);margin-bottom:12px}
+.av{width:34px;height:34px;border-radius:50%;background:var(--accent-lt);color:var(--accent);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.u-info{flex:1;min-width:0}
+.u-name{font-weight:500;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.u-email{font-size:11px;color:var(--muted)}
+.xp-col {display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap;gap:2px}
+.xp{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--accent)}
+.timer-sessao{font-family:var(--mono);font-size:10px;color:var(--muted)}
+
+.prog-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:6px}
+.pb{height:4px;border-radius:2px;background:var(--border);transition:background .4s}
+.pb.done{background:var(--accent)}
+.pb.active{background:#93c5fd}
+.prog-labs{display:flex;justify-content:space-between;font-size:10px;color:var(--hint);padding:0 2px}
+
+/* LED PANEL */
+.led-panel{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:16px}
+.led-panel h3{font-size:10px;font-weight:600;letter-spacing:.08em;color:var(--hint);text-transform:uppercase;margin-bottom:12px}
+.led-rows{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
+.led-row{display:flex;align-items:center;gap:9px}
+.led{width:9px;height:9px;border-radius:50%;background:var(--border);flex-shrink:0;transition:background .4s,box-shadow .4s}
+.led.on-blue{background:#3b82f6;box-shadow:0 0 6px #3b82f680}
+.led.on-green{background:#22c55e;box-shadow:0 0 6px #22c55e80}
+.led.on-red{background:#ef4444;box-shadow:0 0 6px #ef444480}
+.led.on-yellow{background:#f59e0b;box-shadow:0 0 6px #f59e0b80}
+.led.on-purple{background:#a855f7;box-shadow:0 0 6px #a855f780}
+.led-lbl{font-size:12px;color:var(--muted);transition:color .3s}
+.led-lbl.lit{color:var(--text);font-weight:500}
+
+/* SCREENS */
+.screen{display:none}
+.screen.active{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARD */
+.card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:24px;margin-bottom:16px}
+.tag{font-size:10px;font-weight:600;letter-spacing:.09em;color:var(--hint);text-transform:uppercase;margin-bottom:8px}
+.card h2{font-size:21px;font-weight:600;margin-bottom:6px;line-height:1.3}
+.sub{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.55}
+
+/* FORM */
+.field{margin-bottom:14px}
+label{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-bottom:5px}
+input[type=text],input[type=email],input[type=number]{
+  width:100%;padding:10px 13px;border:0.5px solid var(--border-md);border-radius:var(--rsm);
+  font-family:var(--font);font-size:14px;background:var(--bg);color:var(--text);outline:none;transition:border .2s,background .2s}
+input:focus{border-color:var(--accent);background:var(--surface)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:var(--rsm);font-family:var(--font);font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#1e40af}
+.btn-primary:disabled{background:var(--border);color:var(--hint);cursor:not-allowed}
+.btn-ghost{background:var(--surface);color:var(--text);border:0.5px solid var(--border-md)}
+.btn-ghost:hover{background:var(--bg)}
+.btn-success{background:var(--green);color:#fff}
+.btn-success:hover{background:#15803d}
+.btn-warn{background:#d97706;color:#fff}
+.btn-warn:hover{background:#b45309}
+.btn-row{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap}
+
+/* ANALOGIA */
+.ana-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:22px}
+.ana-card{padding:14px;border:0.5px solid var(--border);border-radius:var(--rsm);background:var(--bg)}
+.ana-icon{font-size:22px;margin-bottom:7px}
+.ana-card h4{font-size:13px;font-weight:600;margin-bottom:3px}
+.ana-card p{font-size:12px;color:var(--muted);line-height:1.45}
+
+/* CHECKLIST */
+.chk-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.chk-item{display:flex;align-items:flex-start;gap:11px;padding:11px 13px;border:0.5px solid var(--border);border-radius:var(--rsm);cursor:pointer;background:var(--bg);transition:all .2s;user-select:none}
+.chk-item:hover{border-color:var(--border-md)}
+.chk-item.checked{border-color:var(--green);background:var(--green-lt)}
+.chk-box{width:17px;height:17px;border:1.5px solid var(--border-md);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;transition:all .2s;background:var(--surface)}
+.chk-item.checked .chk-box{background:var(--green);border-color:var(--green)}
+.chk-tick{display:none;color:#fff;font-size:10px;font-weight:700;line-height:1}
+.chk-item.checked .chk-tick{display:block}
+.chk-text{font-size:13px;line-height:1.5}
+
+/* PHASE 2 - FORMULA */
+.q-text{font-size:14px;line-height:2;padding:14px 16px;background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rsm);margin-bottom:14px}
+.i-term{display:inline-block;padding:1px 7px;background:var(--accent-lt);border:0.5px solid rgba(29,78,216,.2);border-radius:var(--rxs);font-weight:600;color:var(--accent);cursor:pointer;font-size:13px;transition:all .15s;margin:0 2px}
+.i-term:hover{opacity:.8}
+.i-term.selected{background:var(--amber-lt);border-color:var(--amber);color:var(--amber)}
+.i-term.placed{background:var(--green-lt);border-color:var(--green);color:var(--green);cursor:default}
+
+.formula-row{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 16px;background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rsm);margin-bottom:14px;font-size:17px;font-weight:500;flex-wrap:wrap;min-height:56px}
+.formula-op{color:var(--muted);font-weight:400}
+.slot{min-width:52px;padding:5px 10px;border:1.5px dashed var(--border-md);border-radius:var(--rxs);text-align:center;font-size:14px;color:var(--hint);cursor:pointer;transition:all .2s;background:var(--surface)}
+.slot.active-slot{border-color:var(--amber);color:var(--amber);background:var(--amber-lt)}
+.slot.filled{border:1.5px solid var(--green);color:var(--green);background:var(--green-lt);cursor:default}
+.slot.error{border-color:var(--red);color:var(--red);animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+.ans-row{display:flex;align-items:center;gap:10px;max-width:260px;margin:0 auto 14px}
+.unit-tag{font-family:var(--mono);font-size:15px;font-weight:500;color:var(--muted);white-space:nowrap}
+
+/* FEEDBACK */
+.fb{font-size:13px;padding:10px 13px;border-radius:var(--rxs);margin-bottom:12px;display:none;line-height:1.5}
+.fb.ok{display:block;background:var(--green-lt);color:#15803d;border:0.5px solid rgba(22,163,74,.2)}
+.fb.err{display:block;background:var(--red-lt);color:var(--red);border:0.5px solid rgba(220,38,38,.2)}
+.fb.info{display:block;background:var(--accent-lt);color:var(--accent);border:0.5px solid rgba(29,78,216,.2)}
+
+/* CALC */
+.calc-wrap{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rsm);padding:14px;margin-bottom:14px}
+.calc-lbl{font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--hint);text-transform:uppercase;margin-bottom:8px}
+.calc-screen{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rxs);padding:10px 14px;font-family:var(--mono);font-size:20px;font-weight:600;text-align:right;margin-bottom:10px;min-height:48px;word-break:break-all}
+.calc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.cb{padding:14px 6px;border:0.5px solid var(--border);border-radius:var(--rxs);background:var(--surface);font-family:var(--font);font-size:16px;font-weight:600;cursor:pointer;transition:background .1s,color .1s;color:var(--text);text-align:center}
+.cb:hover{background:var(--accent-lt);color:var(--accent);border-color:rgba(29,78,216,.2)}
+.cb-clr{grid-column:span 2;background:var(--red-lt);color:var(--red)}
+.cb-clr:hover{background:#fecaca;color:var(--red)}
+.cb-eq{grid-column:span 2;background:var(--green-lt);color:var(--green)}
+.cb-eq:hover{background:#bbf7d0;color:var(--green)}
+
+/* PHASE 3 hint */
+.hint-chip{display:inline-block;padding:6px 16px;background:var(--amber-lt);border:0.5px solid rgba(180,83,9,.2);border-radius:20px;font-size:14px;color:var(--amber);margin-bottom:14px;min-height:30px}
+
+/* WARN BOX */
+.warn-box{padding:13px 15px;background:var(--amber-lt);border:0.5px solid rgba(180,83,9,.25);border-radius:var(--rsm);font-size:13px;color:#78350f;margin-bottom:20px;line-height:1.6}
+
+/* CHALLENGE */
+.timer-strip{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rsm);margin-bottom:14px;font-size:13px;color:var(--muted)}
+.timer-val{font-family:var(--mono);font-size:16px;font-weight:500;color:var(--accent)}
+.timer-val.urgent{color:var(--red)}
+.opt-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.opt-btn{padding:12px 15px;border:0.5px solid var(--border);border-radius:var(--rsm);background:var(--bg);font-family:var(--font);font-size:14px;text-align:left;cursor:pointer;transition:all .15s;color:var(--text);width:100%}
+.opt-btn:hover:not(:disabled){background:var(--accent-lt);border-color:rgba(29,78,216,.25);color:var(--accent)}
+.opt-btn.ok{background:var(--green-lt);border-color:rgba(22,163,74,.3);color:#15803d}
+.opt-btn.err{background:var(--red-lt);border-color:rgba(220,38,38,.3);color:var(--red)}
+.opt-btn:disabled{cursor:default}
+
+/* CERTIFICATE */
+#cert-canvas{width:100%;border-radius:var(--rsm);border:0.5px solid var(--border);display:block}
+.cert-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;justify-content:center}
+
+/* RESPONSIVE */
+@media(max-width:480px){
+  .wrap{padding:12px 10px 32px}
+  .card{padding:18px 16px}
+  .btn-row{justify-content:stretch}
+  .btn-row .btn{flex:1;justify-content:center}
+  .formula-row{font-size:15px;gap:6px;padding:12px 10px}
+  .led-rows{grid-template-columns:1fr 1fr}
+  .cert-actions .btn{flex:1;justify-content:center}
+}
+</style>
 </head>
 <body>
 
-    <div class="app-container">
+<div class="wrap">
 
-        <!-- 3. DASHBOARD HEADER (DADOS E PROGRESSO DO ESTUDANTE) -->
-        <header id="dashboard-header" class="dashboard-header">
-            <div class="student-profile">
-                <div class="avatar-placeholder" id="student-avatar">A</div>
-                <div class="student-info">
-                    <h4 id="student-name-display">Carregando Estudante...</h4>
-                    <p id="student-email-display">carregando.email@institucional.br</p>
-                </div>
-            </div>
-            <div class="score-badge">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34M12 2a4 4 0 0 0-4 4v7h8V6a4 4 0 0 0-4-4Z"/></svg>
-                <span id="score-display">0000</span> PTS
-            </div>
-            
-            <div class="progress-track">
-                <div class="progress-step" id="step-1" title="Fase 1">1</div>
-                <div class="progress-step" id="step-2" title="Fase 2">2</div>
-                <div class="progress-step" id="step-3" title="Fase 3">3</div>
-                <div class="progress-step" id="step-4" title="Fase 4">4</div>
-            </div>
-        </header>
+  <!-- THEME TOGGLE (Acessível antes e após login) -->
+  <div class="header-actions">
+    <button class="btn btn-ghost" onclick="toggleTheme()" style="padding:6px 12px;font-size:12px;gap:4px">
+      <span id="theme-icon">🌙</span> <span id="theme-text">Escuro</span>
+    </button>
+  </div>
 
-        <!-- TELA INICIAL: LOGIN E CREDENCIAIS -->
-        <main id="screen-welcome" class="screen active">
-            <div class="card">
-                <div class="card-header-accent"></div>
-                <h1>Desafio Prático: Lei de Ohm</h1>
-                <p class="subtitle">Bem-vindo ao Lab de Física Elétrica. Insira seus dados acadêmicos para iniciar a jornada experimental.</p>
-                
-                <form id="login-form">
-                    <div class="form-group">
-                        <label for="student-name">Nome Completo</label>
-                        <input type="text" id="student-name" placeholder="Insira seu nome completo" required minlength="4">
-                    </div>
-                    <div class="form-group">
-                        <label for="student-email">E-mail Institucional</label>
-                        <input type="email" id="student-email" placeholder="nome.sobrenome@escola.edu" required>
-                    </div>
-                    <button type="submit" class="btn">
-                        <span>Iniciar Jornada Experimental</span>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                    </button>
-                </form>
-            </div>
-        </main>
-
-        <!-- FASE 1: CHECKLIST TEÓRICO DA LEI DE OHM -->
-        <section id="screen-phase1" class="screen">
-            <div class="card">
-                <div class="card-header-accent"></div>
-                <h1>Fase 1: Fundamentação Teórica</h1>
-                <p class="subtitle">Faça uma leitura atenta dos postulados elementares da eletrodinâmica de George Simon Ohm e assinale-os para avançar.</p>
-                
-                <div id="checklist-container">
-                    <div class="checklist-item">
-                        <input type="checkbox" id="item1" class="theory-check">
-                        <div class="checklist-text">
-                            <h3>Relação de Proporcionalidade direta</h3>
-                            <p>A corrente elétrica (I) é diretamente proporcional à tensão (V) aplicada ao condutor e inversamente proporcional à sua resistência elétrica (R).</p>
-                        </div>
-                    </div>
-                    <div class="checklist-item">
-                        <input type="checkbox" id="item2" class="theory-check">
-                        <div class="checklist-text">
-                            <h3>A Natureza do Resistor Ôhmico</h3>
-                            <p>Um condutor é classificado como ôhmico se sua resistência se mantiver termodinamicamente e fisicamente constante em diferentes faixas de tensão.</p>
-                        </div>
-                    </div>
-                    <div class="checklist-item">
-                        <input type="checkbox" id="item3" class="theory-check">
-                        <div class="checklist-text">
-                            <h3>Unidades do Sistema Internacional (SI)</h3>
-                            <p>A tensão é medida em Volts (V), a intensidade de corrente elétrica em Ampères (A) e a resistência em Ohms (Ω).</p>
-                        </div>
-                    </div>
-                    <div class="checklist-item">
-                        <input type="checkbox" id="item4" class="theory-check">
-                        <div class="checklist-text">
-                            <h3>Efeito Joule nos Condutores</h3>
-                            <p>A passagem da corrente elétrica colide com os átomos do resistor, transformando energia elétrica em energia térmica (calor).</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div style="margin-top: 25px; text-align: right;">
-                    <button id="btn-phase1-next" class="btn" disabled>
-                        <span>Avançar para o Desafio</span>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- FASE 2: INTRODUÇÃO E TELA DA PROVA DE CONCEITOS -->
-        <section id="screen-phase2-intro" class="screen">
-            <div class="card" style="text-align: center;">
-                <div class="card-header-accent" style="margin: 0 auto 20px;"></div>
-                <h1>Fase 2: Prova de Conceito Teórico</h1>
-                <p class="subtitle" style="margin-bottom: 30px;">
-                    Seu conhecimento conceitual será testado sob regime temporizado. <br>
-                    <strong>São 3 questões teóricas</strong>. Cada uma possui o tempo de <strong>1 minuto</strong>. <br>
-                    Bônus de velocidade serão aplicados em acertos rápidos.
-                </p>
-                <button id="btn-start-phase2" class="btn">
-                    <span>Iniciar Desafio com Cronômetro</span>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                </button>
-            </div>
-        </section>
-
-        <section id="screen-phase2" class="screen">
-            <div class="card">
-                <div class="timer-container">
-                    <div>Fase 2: Interpretação Conceitual</div>
-                    <div class="timer-clock">Tempo Restante: <span id="p2-timer">60</span>s</div>
-                </div>
-                <div id="p2-question-container" class="question-card">
-                    <h3 id="p2-question-title" style="margin-bottom: 15px;">Carregando pergunta...</h3>
-                    <div class="options-grid" id="p2-options-container">
-                        <!-- Botões de opção injetados por JavaScript -->
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- FASE 3: ASSOCIAÇÃO INTERATIVA DE VARIÁVEIS -->
-        <section id="screen-phase3" class="screen">
-            <div class="card">
-                <div class="card-header-accent"></div>
-                <h1>Fase 3: Extração de Variáveis Físicas</h1>
-                <p class="subtitle">Leia o enunciado abaixo. Clique sobre os valores físicos no texto e, em seguida, clique na caixa correta abaixo para realizar a associação.</p>
-                
-                <!-- Caixa de texto interativa -->
-                <div class="paragraph-box" id="p3-paragraph">
-                    Um dispositivo de aquecimento doméstico projetado com resistência de <span class="interactive-term" data-type="R" data-value="12 Ω">12 Ω</span> é conectado diretamente a uma tomada elétrica com diferença de potencial de <span class="interactive-term" data-type="V" data-value="120 V">120 V</span>. A partir dessa ligação, estabelece-se na rede interna uma corrente de <span class="interactive-term" data-type="I" data-value="10 A">10 A</span>.
-                </div>
-
-                <!-- Encaixe de Variáveis -->
-                <div class="association-slots">
-                    <div class="association-slot" id="slot-V" data-target="V">
-                        <div class="slot-title">Diferença de Potencial (V)</div>
-                        <div class="slot-value" id="val-V">---</div>
-                    </div>
-                    <div class="association-slot" id="slot-I" data-target="I">
-                        <div class="slot-title">Corrente Elétrica (I)</div>
-                        <div class="slot-value" id="val-I">---</div>
-                    </div>
-                    <div class="association-slot" id="slot-R" data-target="R">
-                        <div class="slot-title">Resistência Elétrica (R)</div>
-                        <div class="slot-value" id="val-R">---</div>
-                    </div>
-                </div>
-
-                <div class="feedback-message" id="p3-feedback"></div>
-
-                <div style="text-align: right;">
-                    <button id="btn-phase3-next" class="btn" disabled>
-                        <span>Avançar para Desafio Final</span>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- FASE 4: DESAFIO DE INTERPRETAÇÃO MATEMÁTICA -->
-        <section id="screen-phase4" class="screen">
-            <div class="card">
-                <div class="timer-container" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: var(--error);">
-                    <div>Fase 4: Análise de Dados e Matemática</div>
-                    <div class="timer-clock">Tempo Restante: <span id="p4-timer">03:00</span></div>
-                </div>
-                <div id="p4-question-container" class="question-card">
-                    <h3 id="p4-question-title" style="margin-bottom: 15px;">Carregando exercício...</h3>
-                    <div class="options-grid" id="p4-options-container">
-                        <!-- Injetado Dinamicamente -->
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- TELA FINAL: CERTIFICADO DE CONCLUSÃO -->
-        <section id="screen-final" class="screen">
-            <div class="certificate-container">
-                <div class="certificate-card" id="certificate-print-area">
-                    <div class="certificate-seal">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="#0b0f19"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                    </div>
-                    <h2 class="certificate-title">Certificado de Aproveitamento</h2>
-                    <p class="certificate-subtitle">Laboratório de Estudos Científicos - Departamento de Física Aplicada</p>
-                    
-                    <div class="certificate-body">
-                        Certificamos para fins de comprovação acadêmica que <br>
-                        <span class="student-highlight" id="cert-student-name">NOME DO ESTUDANTE</span><br>
-                        concluiu com êxito todos os módulos experimentais e de cálculo sobre a <br>
-                        <strong>Lei de Ohm e Circuitos Resistivos</strong>.
-                        <p class="points-highlight">Aproveitamento Total: <span id="cert-score">0</span> pontos de performance.</p>
-                    </div>
-
-                    <div class="certificate-meta">
-                        <div>
-                            <strong>Estudante:</strong> <span id="cert-student-name-meta">Nome</span><br>
-                            <strong>E-mail:</strong> <span id="cert-student-email-meta">Email</span>
-                        </div>
-                        <div style="text-align: right;">
-                            <strong>Data de Emissão:</strong> <span id="cert-date">--/--/----</span><br>
-                            <strong>Horário de Conclusão:</strong> <span id="cert-time">--:--:--</span>
-                        </div>
-                        <div class="validation-code" id="cert-hash">
-                            Código de Autenticação: SECURE-HASH-X98274
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="btn-print-group no-print">
-                <button onclick="window.print()" class="btn" style="background-color: var(--success);">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>
-                    <span>🖨️ Imprimir ou Salvar Placar em PDF</span>
-                </button>
-            </div>
-        </section>
-
+  <!-- TOP BAR (post-login) -->
+  <div id="top-bar">
+    <div class="user-row">
+      <div class="av" id="av">A</div>
+      <div class="u-info">
+        <div class="u-name" id="u-name">Estudante</div>
+        <div class="u-email" id="u-email">email@escola.br</div>
+      </div>
+      <div class="xp-col">
+        <div class="xp"><span id="xp-val">0000</span> XP</div>
+        <div class="timer-sessao" id="timer-sessao">Sessão: 00:00</div>
+      </div>
     </div>
+    <div class="prog-bar">
+      <div class="pb" id="pb1"></div>
+      <div class="pb" id="pb2"></div>
+      <div class="pb" id="pb3"></div>
+      <div class="pb" id="pb4"></div>
+    </div>
+    <div class="prog-labs">
+      <span>Conceitos</span><span>Fórmula</span><span>Prática</span><span>Desafio</span>
+    </div>
+  </div>
 
-    <!-- ==========================================================================
-       11. JAVASCRIPT CORE ENGINE (CONTROLE DE ESTADO, TIMERS E LÓGICA)
-       ========================================================================== */ -->
-    <script>
-        // --- ESTADO GLOBAL DA APLICAÇÃO ---
-        const state = {
-            student: { name: '', email: '' },
-            score: 0,
-            activePhase: 0,
-            timer: null,
-            p2: {
-                questions: [
-                    {
-                        title: "Se mantivermos a diferença de potencial constante em um resistor ôhmico e duplicarmos o seu valor de resistência elétrica, o que ocorre com a intensidade da corrente?",
-                        options: [
-                            { text: "A corrente elétrica é reduzida pela metade.", correct: true },
-                            { text: "A corrente elétrica também duplica de valor.", correct: false },
-                            { text: "A corrente elétrica quadruplica de valor.", correct: false },
-                            { text: "A corrente permanece inalterada.", correct: false }
-                        ]
-                    },
-                    {
-                        title: "Um físico analisa graficamente o comportamento elétrico de um dispositivo. Qual modelo matemático indica que o dispositivo analisado é perfeitamente ôhmico?",
-                        options: [
-                            { text: "Uma curva exponencial que cresce de acordo com a tensão.", correct: false },
-                            { text: "Uma linha reta linear e crescente com origem nos pontos (0,0).", correct: true },
-                            { text: "Uma parábola decrescente no gráfico de Corrente x Resistência.", correct: false },
-                            { text: "Uma recta horizontal invariável paralela ao eixo da tensão.", correct: false }
-                        ]
-                    },
-                    {
-                        title: "Se um resistor possui altíssima resistividade devido a sua construção atômica, o que se pode afirmar sobre sua condução elétrica?",
-                        options: [
-                            { text: "Conduz eletricidade facilmente.", correct: false },
-                            { text: "Bloqueia totalmente a tensão do circuito elétrico.", correct: false },
-                            { text: "Apresenta baixa oposição ao movimento ordenado dos elétrons.", correct: false },
-                            { text: "A corrente que passa por ele é baixa sob uma dada d.p.d constante.", correct: true }
-                        ]
-                    }
-                ],
-                currentIndex: 0
-            },
-            p3: {
-                selectedElement: null,
-                matches: { V: null, I: null, R: null },
-                completed: false
-            },
-            p4: {
-                questionsBank: [
-                    {
-                        title: "Um aquecedor térmico residencial com especificação de fábrica de 1200W opera ligado à rede estável de 120V. Utilizando seus conhecimentos sobre eletrodinâmica e Lei de Ohm, calcule o valor da corrente que o percorre e a sua resistência elétrica interna, respectivamente.",
-                        options: [
-                            { text: "10 A e 12 Ω", correct: true },
-                            { text: "5 A e 24 Ω", correct: false },
-                            { text: "12 A e 10 Ω", correct: false },
-                            { text: "8 A e 15 Ω", correct: false }
-                        ]
-                    },
-                    {
-                        title: "Um resistor puramente ôhmico de 50 Ω está operando em um circuito sob d.p.d de 200 V. Caso a tensão operacional caia de forma abrupta para o valor de 50 V, qual será o novo valor da intensidade de corrente elétrica que percorrerá este resistor?",
-                        options: [
-                            { text: "4 A", correct: false },
-                            { text: "1 A", correct: true },
-                            { text: "2 A", correct: false },
-                            { text: "0.5 A", correct: false }
-                        ]
-                    },
-                    {
-                        title: "No circuito simplificado de um equipamento, há dois resistores ligados em associação em série com resistências de 10 Ω e 20 Ω, alimentados por uma bateria de 60 V. Determine a corrente total do circuito e a respectiva queda de tensão sobre o resistor de 20 Ω.",
-                        options: [
-                            { text: "2 A e 40 V", correct: true },
-                            { text: "3 A e 30 V", correct: false },
-                            { text: "2 A e 20 V", correct: false },
-                            { text: "6 A e 60 V", correct: false }
-                        ]
-                    },
-                    {
-                        title: "Um voltímetro acoplado de forma correta ao circuito mede a d.p.d exata de 12 V nos terminais de um componente elétrico de resistência desconhecida. Um amperímetro em série mostra que a corrente que flui por ele é de 150 mA (0.15 A). Qual é o valor real da resistência do dispositivo?",
-                        options: [
-                            { text: "80 Ω", correct: true },
-                            { text: "8 Ω", correct: false },
-                            { text: "180 Ω", correct: false },
-                            { text: "1.8 Ω", correct: false }
-                        ]
-                    },
-                    {
-                        title: "Uma lâmpada incandescente antiga apresenta em sua base as especificações técnicas de funcionamento do fabricante: 120 V - 60 W. Calcule qual é o valor aproximado da resistência do filamento interno desta lâmpada ao operar nas devidas condições nominais especificadas.",
-                        options: [
-                            { text: "240 Ω", correct: true },
-                            { text: "120 Ω", correct: false },
-                            { text: "480 Ω", correct: false },
-                            { text: "2 Ω", correct: false }
-                        ]
-                    }
-                ],
-                selectedQuestions: [],
-                currentIndex: 0
-            }
-        };
+  <!-- LED PANEL (post-login) -->
+  <div class="led-panel" id="led-panel" style="display:none">
+    <h3>Competências desbloqueadas</h3>
+    <div class="led-rows">
+      <div class="led-row"><div class="led" id="led-V"></div><span class="led-lbl" id="llab-V">Tensão elétrica (V)</span></div>
+      <div class="led-row"><div class="led" id="led-I"></div><span class="led-lbl" id="llab-I">Corrente elétrica (I)</span></div>
+      <div class="led-row"><div class="led" id="led-R"></div><span class="led-lbl" id="llab-R">Resistência (R)</span></div>
+      <div class="led-row"><div class="led" id="led-A"></div><span class="led-lbl" id="llab-A">Associação</span></div>
+      <div class="led-row"><div class="led" id="led-D"></div><span class="led-lbl" id="llab-D">Desafio final</span></div>
+    </div>
+  </div>
 
-        // --- SISTEMA DE NAVEGAÇÃO ENTRE TELAS ---
-        function changeScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(scr => scr.classList.remove('active'));
-            setTimeout(() => {
-                const screen = document.getElementById(screenId);
-                screen.classList.add('active');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }, 100);
-        }
+  <!-- ═══ TELA 0: LOGIN ═══ -->
+  <div class="screen active" id="s-login">
+    <div class="card">
+      <div class="tag">Módulo educacional · Física</div>
+      <h2>Lei de Ohm</h2>
+      <p class="sub">Insira seus dados para iniciar. Sua sessão será cronometrada automaticamente do login até o fim do desafio.</p>
+      <div class="field">
+        <label for="inp-name">Nome completo</label>
+        <input type="text" id="inp-name" placeholder="Ex: Maria Silva" minlength="4" autocomplete="name">
+      </div>
+      <div class="field">
+        <label for="inp-email">E-mail institucional</label>
+        <input type="email" id="inp-email" placeholder="seu.nome@etec.sp.gov.br" autocomplete="email">
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="doLogin()">Iniciar treinamento →</button>
+      </div>
+    </div>
+  </div>
 
-        function updateProgressUI() {
-            document.querySelectorAll('.progress-step').forEach((step, idx) => {
-                step.classList.remove('active', 'completed');
-                if (idx + 1 < state.activePhase) {
-                    step.classList.add('completed');
-                    step.innerHTML = '✓';
-                } else if (idx + 1 === state.activePhase) {
-                    step.classList.add('active');
-                    step.innerHTML = idx + 1;
-                } else {
-                    step.innerHTML = idx + 1;
-                }
-            });
-        }
+  <!-- ═══ TELA 1: FASE 1 — CONCEITOS ═══ -->
+  <div class="screen" id="s-p1">
+    <div class="card">
+      <div class="tag">Fase 1 de 4 · Fundamentos</div>
+      <h2>A analogia hidráulica</h2>
+      <p class="sub">Associamos a eletricidade ao fluxo de água para tornar os conceitos concretos. Leia com atenção antes de confirmar.</p>
 
-        function updateScore(points, isAdd = true) {
-            if (isAdd) {
-                state.score += points;
-            } else {
-                state.score = Math.max(0, state.score - points);
-            }
-            document.getElementById('score-display').textContent = String(state.score).padStart(4, '0');
-        }
+      <div class="ana-grid">
+        <div class="ana-card">
+          <div class="ana-icon">🚰</div>
+          <h4>Tensão — Volt (V)</h4>
+          <p>A pressão da água no reservatório. Empurra os elétrons pelo circuito.</p>
+        </div>
+        <div class="ana-card">
+          <div class="ana-icon">🌊</div>
+          <h4>Corrente — Ampere (A)</h4>
+          <p>A vazão de água no cano. Representa o fluxo real de elétrons.</p>
+        </div>
+        <div class="ana-card">
+          <div class="ana-icon">🛑</div>
+          <h4>Resistência — Ohm (Ω)</h4>
+          <p>O estreitamento do cano. Dificulta a passagem e controla o fluxo.</p>
+        </div>
+      </div>
 
-        // --- INICIALIZAÇÃO E FORMULÁRIO ---
-        document.getElementById('login-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            state.student.name = document.getElementById('student-name').value;
-            state.student.email = document.getElementById('student-email').value;
+      <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Confirme cada conceito que você compreendeu para avançar:</p>
+      <div class="chk-list">
+        <div class="chk-item" id="ci0" onclick="toggleChk(0)">
+          <div class="chk-box"><span class="chk-tick">✓</span></div>
+          <div class="chk-text"><strong>Tensão (V)</strong> — diferença de potencial elétrico, medida em Volts.</div>
+        </div>
+        <div class="chk-item" id="ci1" onclick="toggleChk(1)">
+          <div class="chk-box"><span class="chk-tick">✓</span></div>
+          <div class="chk-text"><strong>Corrente (I)</strong> — fluxo ordenado de portadores de carga, medido em Ampères.</div>
+        </div>
+        <div class="chk-item" id="ci2" onclick="toggleChk(2)">
+          <div class="chk-box"><span class="chk-tick">✓</span></div>
+          <div class="chk-text"><strong>Resistência (R)</strong> — oposição ao fluxo elétrico, medida em Ohms (Ω).</div>
+        </div>
+      </div>
 
-            // Injetar dados no header do Dashboard
-            document.getElementById('student-name-display').textContent = state.student.name;
-            document.getElementById('student-email-display').textContent = state.student.email;
-            document.getElementById('student-avatar').textContent = state.student.name.charAt(0).toUpperCase();
-            
-            // Exibir Header do Dashboard
-            document.getElementById('dashboard-header').style.display = 'flex';
-            
-            // Avançar para Fase 1
-            state.activePhase = 1;
-            updateProgressUI();
-            changeScreen('screen-phase1');
-        });
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btn-p1-next" disabled onclick="goP2()">Avançar para a prática →</button>
+      </div>
+    </div>
+  </div>
 
-        // ==========================================================================
-        // MECÂNICAS DA FASE 1: CHECKLIST DE FUNDAMENTAÇÃO
-        // ==========================================================================
-        const theoryChecks = document.querySelectorAll('.theory-check');
-        const btnPhase1Next = document.getElementById('btn-phase1-next');
+  <!-- ═══ TELA 2: FASE 2 — FÓRMULA INTERATIVA ═══ -->
+  <div class="screen" id="s-p2">
+    <div class="card">
+      <div class="tag">Fase 2 de 4 · Montagem da fórmula — exercício <span id="p2-idx">1</span> de 10</div>
+      <h2>Encaixe os valores na fórmula</h2>
+      <p class="sub">① Toque em um número destacado no enunciado. ② Toque no slot correto da fórmula. ③ Calcule e insira o resultado.</p>
 
-        theoryChecks.forEach(checkbox => {
-            checkbox.addEventListener('change', () => {
-                const allChecked = Array.from(theoryChecks).every(c => c.checked);
-                btnPhase1Next.disabled = !allChecked;
-            });
-        });
+      <div class="q-text" id="p2-text"></div>
+      <div class="formula-row" id="p2-formula"></div>
 
-        document.querySelectorAll('.checklist-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                if (e.target.tagName !== 'INPUT') {
-                    const cb = item.querySelector('.theory-check');
-                    cb.checked = !cb.checked;
-                    cb.dispatchEvent(new Event('change'));
-                }
-            });
-        });
+      <div class="fb" id="p2-fb"></div>
 
-        btnPhase1Next.addEventListener('click', () => {
-            updateScore(10);
-            state.activePhase = 2;
-            updateProgressUI();
-            changeScreen('screen-phase2-intro');
-        });
+      <div class="ans-row">
+        <input type="number" id="p2-ans" placeholder="Resultado" step="any" disabled>
+        <span class="unit-tag" id="p2-unit">A</span>
+        <button class="btn btn-primary" style="padding: 10px 14px;" onclick="verifyP2()">Verificar</button>
+      </div>
 
-        // ==========================================================================
-        // MECÂNICAS DA FASE 2: CONCEITOS TEMPORIZADOS
-        // ==========================================================================
-        const btnStartPhase2 = document.getElementById('btn-start-phase2');
-        btnStartPhase2.addEventListener('click', () => {
-            changeScreen('screen-phase2');
-            loadPhase2Question();
-        });
+      <div class="calc-wrap">
+        <div class="calc-lbl">Calculadora de Apoio</div>
+        <div class="calc-screen" id="cs1">0</div>
+        <div class="calc-grid">
+          <button class="cb cb-clr" onclick="ca(1,'C')">C</button>
+          <button class="cb" onclick="ca(1,'/')">÷</button>
+          <button class="cb" onclick="ca(1,'*')">×</button>
+          <button class="cb" onclick="ca(1,'7')">7</button>
+          <button class="cb" onclick="ca(1,'8')">8</button>
+          <button class="cb" onclick="ca(1,'9')">9</button>
+          <button class="cb" onclick="ca(1,'-')">−</button>
+          <button class="cb" onclick="ca(1,'4')">4</button>
+          <button class="cb" onclick="ca(1,'5')">5</button>
+          <button class="cb" onclick="ca(1,'6')">6</button>
+          <button class="cb" onclick="ca(1,'+')">+</button>
+          <button class="cb" onclick="ca(1,'1')">1</button>
+          <button class="cb" onclick="ca(1,'2')">2</button>
+          <button class="cb" onclick="ca(1,'3')">3</button>
+          <button class="cb" onclick="ca(1,'0')">0</button>
+          <button class="cb" onclick="ca(1,'.')">.</button>
+          <button class="cb cb-eq" onclick="ca(1,'=')">=</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        function loadPhase2Question() {
-            if (state.p2.currentIndex >= state.p2.questions.length) {
-                clearInterval(state.timer);
-                state.activePhase = 3;
-                updateProgressUI();
-                changeScreen('screen-phase3');
-                return;
-            }
+  <!-- ═══ TELA 3: FASE 3 — PRÁTICA AUTÔNOMA ═══ -->
+  <div class="screen" id="s-p3">
+    <div class="card">
+      <div class="tag">Fase 3 de 4 · Prática autônoma — exercício <span id="p3-idx">1</span> de 5</div>
+      <h2>Resolva por conta própria</h2>
+      <p class="sub">Sem encaixes visuais. Monte a operação mentalmente, use a calculadora e escreva a resposta correta.</p>
 
-            const question = state.p2.questions[state.p2.currentIndex];
-            document.getElementById('p2-question-title').textContent = `${state.p2.currentIndex + 1}. ${question.title}`;
-            
-            const optionsBox = document.getElementById('p2-options-container');
-            optionsBox.innerHTML = '';
+      <div class="q-text" id="p3-text" style="border-style:solid;line-height:1.8"></div>
+      <div style="display: flex; gap: 6px; align-items: center;">
+        <span style="font-size: 11px; color: var(--muted)">Fórmula de referência:</span>
+        <span class="hint-chip" id="p3-hint">V = R \times I</span>
+      </div>
 
-            question.options.forEach(option => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.textContent = option.text;
-                btn.addEventListener('click', () => evaluatePhase2Answer(btn, option.correct));
-                optionsBox.appendChild(btn);
-            });
+      <div class="fb" id="p3-fb"></div>
 
-            startPhase2Timer();
-        }
+      <div class="ans-row">
+        <input type="number" id="p3-ans" placeholder="Resultado" step="any">
+        <span class="unit-tag" id="p3-unit">Ω</span>
+        <button class="btn btn-primary" style="padding: 10px 14px;" onclick="verifyP3()">Validar</button>
+      </div>
 
-        function startPhase2Timer() {
-            let timeLeft = 60;
-            document.getElementById('p2-timer').textContent = timeLeft;
-            clearInterval(state.timer);
+      <div class="calc-wrap">
+        <div class="calc-lbl">Calculadora de Apoio</div>
+        <div class="calc-screen" id="cs2">0</div>
+        <div class="calc-grid">
+          <button class="cb cb-clr" onclick="ca(2,'C')">C</button>
+          <button class="cb" onclick="ca(2,'/')">÷</button>
+          <button class="cb" onclick="ca(2,'*')">×</button>
+          <button class="cb" onclick="ca(2,'7')">7</button>
+          <button class="cb" onclick="ca(2,'8')">8</button>
+          <button class="cb" onclick="ca(2,'9')">9</button>
+          <button class="cb" onclick="ca(2,'-')">−</button>
+          <button class="cb" onclick="ca(2,'4')">4</button>
+          <button class="cb" onclick="ca(2,'5')">5</button>
+          <button class="cb" onclick="ca(2,'6')">6</button>
+          <button class="cb" onclick="ca(2,'+')">+</button>
+          <button class="cb" onclick="ca(2,'1')">1</button>
+          <button class="cb" onclick="ca(2,'2')">2</button>
+          <button class="cb" onclick="ca(2,'3')">3</button>
+          <button class="cb" onclick="ca(2,'0')">0</button>
+          <button class="cb" onclick="ca(2,'.')">.</button>
+          <button class="cb cb-eq" onclick="ca(2,'=')">=</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-            state.timer = setInterval(() => {
-                timeLeft--;
-                document.getElementById('p2-timer').textContent = timeLeft;
-                if (timeLeft <= 0) {
-                    clearInterval(state.timer);
-                    evaluatePhase2Answer(null, false, true);
-                }
-            }, 1000);
-        }
+  <!-- ═══ TELA 4: INTRO DESAFIO ═══ -->
+  <div class="screen" id="s-intro">
+    <div class="card" style="text-align:center">
+      <div class="tag" style="text-align:center">Treinamento concluído</div>
+      <h2 style="margin-bottom:10px">Pronto para o desafio?</h2>
+      <p class="sub">Você completou as etapas de estudo. Agora é hora do teste real.</p>
+      <div class="warn-box" style="text-align:left">
+        ⚠️ No desafio, a <strong>calculadora e as fórmulas de referência não estarão disponíveis</strong>. Cada questão tem um cronômetro. Confie no que aprendeu.
+      </div>
+      <div class="btn-row" style="justify-content:center">
+        <button class="btn btn-warn" onclick="startChallenge()">Entrar no desafio →</button>
+      </div>
+    </div>
+  </div>
 
-        function evaluatePhase2Answer(selectedBtn, isCorrect, timeout = false) {
-            clearInterval(state.timer);
-            const options = document.querySelectorAll('#p2-options-container .option-btn');
-            
-            options.forEach(btn => btn.disabled = true);
+  <!-- ═══ TELA 5: DESAFIO ═══ -->
+  <div class="screen" id="s-ch">
+    <div class="card">
+      <div class="tag">Fase 4 de 4 · Desafio final</div>
+      <div class="timer-strip">
+        <span>Questão <span id="ch-idx">1</span> de 3</span>
+        <span class="timer-val" id="ch-timer">01:00</span>
+      </div>
+      <h2 id="ch-q" style="margin-bottom:16px;font-size:18px;line-height:1.4">Carregando…</h2>
+      <div class="opt-list" id="ch-opts"></div>
+    </div>
+  </div>
 
-            const question = state.p2.questions[state.p2.currentIndex];
+  <!-- ═══ TELA 6: CERTIFICADO ═══ -->
+  <div class="screen" id="s-final">
+    <div class="card" style="text-align:center">
+      <div class="tag" style="text-align:center">Sessão encerrada</div>
+      <h2 style="margin-bottom:6px">Módulo concluído!</h2>
+      <p class="sub">Seu desempenho foi registrado e o certificado está pronto para download.</p>
+      <canvas id="cert-canvas" width="640" height="460"></canvas>
+      <div class="cert-actions">
+        <button class="btn btn-success" onclick="dlCert()">↓ Baixar certificado (PNG)</button>
+        <button class="btn btn-ghost" onclick="copyCert()">⧉ Copiar imagem</button>
+      </div>
+    </div>
+  </div>
 
-            if (timeout) {
-                options.forEach((btn, index) => {
-                    if (question.options[index].correct) btn.classList.add('correct-feedback');
-                });
-            } else {
-                if (isCorrect) {
-                    selectedBtn.classList.add('correct-feedback');
-                    const timeLeft = parseInt(document.getElementById('p2-timer').textContent);
-                    const bonus = Math.floor(timeLeft / 5);
-                    updateScore(20 + bonus);
-                } else {
-                    selectedBtn.classList.add('error-feedback');
-                    options.forEach((btn, index) => {
-                        if (question.options[index].correct) btn.classList.add('correct-feedback');
-                    });
-                }
-            }
+</div>
 
-            setTimeout(() => {
-                state.p2.currentIndex++;
-                loadPhase2Question();
-            }, 1500);
-        }
+<script>
+// ═══════════════════════════════════════════════
+// ESTADO GLOBAL DO SISTEMA DE ENSINO
+// ═══════════════════════════════════════════════
+const ST={
+  student:{name:'',email:''},
+  startTime:null,
+  endTime:null,
+  score:0,
+  phase:0,
+  timerInterval:null,
+  sessionInterval:null,
+  leds:{V:false,I:false,R:false,A:false,D:false},
+  p2:{idx:0,sel:null,inputs:{}},
+  p3:{idx:0},
+  ch:{idx:0},
+  calcMem:['','']
+};
 
-        // ==========================================================================
-        // MECÂNICAS DA FASE 3: ASSOCIAÇÃO INTERATIVA DE VARIÁVEIS
-        // ==========================================================================
-        const terms = document.querySelectorAll('.interactive-term');
-        const slots = document.querySelectorAll('.association-slot');
-        const p3Feedback = document.getElementById('p3-feedback');
-        const btnPhase3Next = document.getElementById('btn-phase3-next');
+// ═══════════════════════════════════════════════
+// BANCO DE EXERCÍCIOS CONSTRUTIVOS
+// ═══════════════════════════════════════════════
+const P2=[
+  {text:"Uma pequena lâmpada residencial funciona com tensão de <span class='i-term' data-t='V' data-v='20'>20 V</span> e resistência interna de <span class='i-term' data-t='R' data-v='5'>5 Ω</span>. Dividindo a tensão pela resistência, qual é a corrente elétrica?",layout:"I = [V] / [R]",slots:["V","R"],ans:4,unit:"A"},
+  {text:"Um ferro de passar consome <span class='i-term' data-t='I' data-v='10'>10 A</span> conectado a uma tensão de <span class='i-term' data-t='V' data-v='120'>120 V</span>. Dividindo a tensão pela corrente, qual é a resistência do ferro?",layout:"R = [V] / [I]",slots:["V","I"],ans:12,unit:"Ω"},
+  {text:"Um resistor de <span class='i-term' data-t='R' data-v='4'>4 Ω</span> conduz uma corrente de <span class='i-term' data-t='I' data-v='3'>3 A</span>. Multiplicando a resistência pela corrente, qual é a tensão nas extremidades?",layout:"V = [R] * [I]",slots:["R","I"],ans:12,unit:"V"},
+  {text:"Um carregador drena <span class='i-term' data-t='I' data-v='2'>2 A</span> de uma porta de <span class='i-term' data-t='V' data-v='10'>10 V</span>. Dividindo a tensão pela corrente, qual é a resistência do circuito?",layout:"R = [V] / [I]",slots:["V","I"],ans:5,unit:"Ω"},
+  {text:"Um motor de brinquedo tem resistência de <span class='i-term' data-t='R' data-v='6'>6 Ω</span> alimentado por <span class='i-term' data-t='V' data-v='12'>12 V</span>. Dividindo a tensão pela resistência, qual é a corrente gerada?",layout:"I = [V] / [R]",slots:["V","R"],ans:2,unit:"A"},
+  {text:"Uma lanterna tem resistência de <span class='i-term' data-t='R' data-v='3'>3 Ω</span> e corrente de <span class='i-term' data-t='I' data-v='2'>2 A</span>. Multiplicando resistência pela corrente, qual é a tensão da pilha?",layout:"V = [R] * [I]",slots:["R","I"],ans:6,unit:"V"},
+  {text:"Um chuveiro opera com <span class='i-term' data-t='V' data-v='220'>220 V</span> e extrai corrente de <span class='i-term' data-t='I' data-v='20'>20 A</span>. Dividindo a tensão pela corrente, qual é a resistência interna?",layout:"R = [V] / [I]",slots:["V","I"],ans:11,unit:"Ω"},
+  {text:"Um fusível tem resistência de <span class='i-term' data-t='R' data-v='10'>10 Ω</span> e opera com corrente máxima de <span class='i-term' data-t='I' data-v='1'>1 A</span>. Multiplicando os dois, qual é a tensão correspondente?",layout:"V = [R] * [I]",slots:["R","I"],ans:10,unit:"V"},
+  {text:"Um resistor de cerâmica de <span class='i-term' data-t='R' data-v='50'>50 Ω</span> recebe uma tensão de <span class='i-term' data-t='V' data-v='100'>100 V</span>. Dividindo a tensão pela resistência, qual é a corrente elétrica?",layout:"I = [V] / [R]",slots:["V","R"],ans:2,unit:"A"},
+  {text:"Um secador opera em <span class='i-term' data-t='V' data-v='110'>110 V</span> com resistência de aquecimento de <span class='i-term' data-t='R' data-v='10'>10 Ω</span>. Dividindo a tensão pela resistência, qual é a corrente?",layout:"I = [V] / [R]",slots:["V","R"],ans:11,unit:"A"}
+];
 
-        terms.forEach(term => {
-            term.addEventListener('click', function() {
-                if (this.classList.contains('correct')) return;
+const P3=[
+  {text:"Um aquecedor elétrico tem resistência de 11 Ω e opera em 220 V. Qual é o valor da corrente elétrica que o percorre?",hint:"I = \\frac{V}{R}",ans:20,unit:"A",led:"I"},
+  {text:"Um resistor de 100 Ω conduz uma corrente de 2 A. Qual é a tensão elétrica em suas extremidades?",hint:"V = R \\cdot I",ans:200,unit:"V",led:"V"},
+  {text:"Uma lâmpada consome 3 A conectada a 120 V. Qual é a resistência elétrica da lâmpada?",hint:"R = \\frac{V}{I}",ans:40,unit:"Ω",led:"R"},
+  {text:"Um ferro de solda tem resistência de 22 Ω ligado a 110 V. Qual é a corrente do circuito?",hint:"I = \\frac{V}{R}",ans:5,unit:"A",led:"I"},
+  {text:"Um dispositivo emite 4 A sob resistência interna de 3 Ω. Qual é a tensão da bateria?",hint:"V = R \\cdot I",ans:12,unit:"V",led:"V"}
+];
 
-                terms.forEach(t => t.classList.remove('selected'));
-                state.p3.selectedElement = this;
-                this.classList.add('selected');
+const CH=[
+  {q:"Qual é a unidade oficial de medida de resistência elétrica no Sistema Internacional?",opts:[{t:"Volt (V)",c:false},{t:"Ampere (A)",c:false},{t:"Ohm (Ω)",c:true},{t:"Watt (W)",c:false}],timer:60},
+  {q:"Na Lei de Ohm, qual grandeza elétrica é medida em Volts (V)?",opts:[{t:"Tensão elétrica",c:true},{t:"Corrente elétrica",c:false},{t:"Resistência elétrica",c:false},{t:"Potência elétrica",c:false}],timer:60},
+  {q:"De acordo com a 2ª Lei de Ohm, qual característica física do fio condutor altera sua resistência?",opts:[{t:"A cor da proteção plástica",c:false},{t:"O comprimento do fio",c:true},{t:"O peso do interruptor",c:false},{t:"O tempo que fica desligado",c:false}],timer:60}
+];
 
-                slots.forEach(s => {
-                    if (!s.classList.contains('matched')) {
-                        s.classList.add('active-receiver');
-                    }
-                });
+// ═══════════════════════════════════════════════
+// SISTEMA DE ALTERNÂNCIA DE TEMA (DARK/LIGHT MODE)
+// ═══════════════════════════════════════════════
+function toggleTheme() {
+  const body = document.body;
+  body.classList.toggle('dark-theme');
+  const isDark = body.classList.contains('dark-theme');
+  document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
+  document.getElementById('theme-text').textContent = isDark ? 'Claro' : 'Escuro';
+}
 
-                p3Feedback.textContent = "Excelente! Agora selecione a caixa de variável física equivalente abaixo.";
-                p3Feedback.className = "feedback-message";
-            });
-        });
+// ═══════════════════════════════════════════════
+// NAVEGAÇÃO E UTILITÁRIOS
+// ═══════════════════════════════════════════════
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
 
-        slots.forEach(slot => {
-            slot.addEventListener('click', function() {
-                if (!state.p3.selectedElement) return;
-                if (this.classList.contains('matched')) return;
+function setLed(k,on){
+  ST.leds[k]=on;
+  const el=document.getElementById('led-'+k);
+  const lab=document.getElementById('llab-'+k);
+  const cls={V:'on-blue',I:'on-green',R:'on-red',A:'on-yellow',D:'on-purple'}[k];
+  if(el){
+    if(on){el.classList.add(cls)}else{el.classList.remove(cls)}
+  }
+  if(lab){
+    if(on){lab.classList.add('lit')}else{lab.classList.remove('lit')}
+  }
+}
 
-                const selectedType = state.p3.selectedElement.dataset.type;
-                const slotTargetType = this.dataset.target;
+function addXP(n){
+  ST.score+=n;
+  document.getElementById('xp-val').textContent=String(ST.score).padStart(4,'0');
+}
 
-                slots.forEach(s => s.classList.remove('active-receiver'));
+function setProg(n){
+  ['pb1','pb2','pb3','pb4'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    el.className='pb';
+    if(i+1<n) el.classList.add('done');
+    else if(i+1===n) el.classList.add('active');
+  });
+}
 
-                if (selectedType === slotTargetType) {
-                    this.classList.add('matched');
-                    this.querySelector('.slot-value').textContent = state.p3.selectedElement.dataset.value;
-                    
-                    state.p3.selectedElement.classList.remove('selected');
-                    state.p3.selectedElement.classList.add('correct');
-                    
-                    state.p3.matches[selectedType] = state.p3.selectedElement.dataset.value;
-                    state.p3.selectedElement = null;
+function setFB(id,type,msg){
+  const el=document.getElementById(id);
+  el.className='fb'+(type?' '+type:'');
+  el.textContent=msg;
+}
 
-                    updateScore(30);
-                    p3Feedback.textContent = "Conexão de circuito realizada com sucesso!";
-                    p3Feedback.className = "feedback-message success";
+// ═══════════════════════════════════════════════
+// CRONÔMETRO DE SESSÃO CONTÍNUO (REATIVO)
+// ═══════════════════════════════════════════════
+function startSessionChronometer() {
+  ST.sessionInterval = setInterval(() => {
+    if (!ST.endTime) {
+      const ms = Date.now() - ST.startTime;
+      const ts = Math.floor(ms / 1000);
+      const tm = Math.floor(ts / 60);
+      const tss = ts % 60;
+      document.getElementById('timer-sessao').textContent = `Sessão: ${String(tm).padStart(2, '0')}:${String(tss).padStart(2, '0')}`;
+    }
+  }, 1000);
+}
 
-                    checkPhase3Completion();
-                } else {
-                    const wrongEl = state.p3.selectedElement;
-                    this.classList.add('wrong-attempt');
-                    wrongEl.classList.remove('selected');
-                    wrongEl.classList.add('wrong');
+// ═══════════════════════════════════════════════
+// CALCULADORA (AMPLIADA)
+// ═══════════════════════════════════════════════
+function ca(num,v){
+  const scrId=num===1?'cs1':'cs2';
+  const sc=document.getElementById(scrId);
+  const idx=num-1;
+  if(v==='C'){ST.calcMem[idx]='';sc.textContent='0';return}
+  if(v==='='){
+    try{
+      const sanitized=ST.calcMem[idx].replace(/[^0-9+\-*/.]/g,'');
+      const r=Function('"use strict";return ('+sanitized+')')();
+      const display=Number.isInteger(r)?r:parseFloat(r.toFixed(6));
+      sc.textContent=display;
+      ST.calcMem[idx]=String(display);
+    }catch{sc.textContent='Erro';ST.calcMem[idx]='';}
+    return;
+  }
+  if(ST.calcMem[idx]===''&&sc.textContent==='0'&&/[0-9.]/.test(v)) ST.calcMem[idx]='';
+  else if(sc.textContent==='Erro') ST.calcMem[idx]='';
+  ST.calcMem[idx]+=v;
+  sc.textContent=ST.calcMem[idx];
+}
 
-                    updateScore(5, false);
-                    p3Feedback.textContent = "Tente novamente! A grandeza física não confere.";
-                    p3Feedback.className = "feedback-message error";
+// ═══════════════════════════════════════════════
+// LOGIN
+// ═══════════════════════════════════════════════
+function doLogin(){
+  const name=document.getElementById('inp-name').value.trim();
+  const email=document.getElementById('inp-email').value.trim();
+  if(name.length<4){alert('Digite seu nome completo (mínimo 4 caracteres).');return}
+  if(!email.includes('@')||!email.includes('.')){alert('Digite um e-mail válido.');return}
+  ST.student={name,email};
+  ST.startTime=Date.now();
+  
+  startSessionChronometer();
 
-                    setTimeout(() => {
-                        this.classList.remove('wrong-attempt');
-                        wrongEl.classList.remove('wrong');
-                    }, 800);
+  document.getElementById('av').textContent=name.charAt(0).toUpperCase();
+  document.getElementById('u-name').textContent=name;
+  document.getElementById('u-email').textContent=email;
+  document.getElementById('top-bar').style.display='block';
+  document.getElementById('led-panel').style.display='block';
+  ST.phase=1; setProg(1);
+  show('s-p1');
+}
 
-                    state.p3.selectedElement = null;
-                }
-            });
-        });
+// ═══════════════════════════════════════════════
+// FASE 1 — CHECKLIST
+// ═══════════════════════════════════════════════
+const chkState=[false,false,false];
+function toggleChk(i){
+  chkState[i]=!chkState[i];
+  document.getElementById('ci'+i).classList.toggle('checked',chkState[i]);
+  document.getElementById('btn-p1-next').disabled=!chkState.every(Boolean);
+}
 
-        function checkPhase3Completion() {
-            const allMatched = Object.values(state.p3.matches).every(v => v !== null);
-            if (allMatched) {
-                btnPhase3Next.disabled = false;
-                p3Feedback.textContent = "Fase 3 Concluída! Você demonstrou forte entendimento de dados de circuitos.";
-                p3Feedback.className = "feedback-message success";
-            }
-        }
+function goP2(){
+  addXP(100);
+  ST.phase=2; setProg(2);
+  ST.p2.idx=0;
+  loadP2();
+  show('s-p2');
+}
 
-        btnPhase3Next.addEventListener('click', () => {
-            state.activePhase = 4;
-            updateProgressUI();
-            setupPhase4();
-        });
+// ═══════════════════════════════════════════════
+// FASE 2 — FÓRMULA INTERATIVA
+// ═══════════════════════════════════════════════
+function loadP2(){
+  const d=P2[ST.p2.idx];
+  document.getElementById('p2-idx').textContent=ST.p2.idx+1;
+  document.getElementById('p2-unit').textContent=d.unit;
+  document.getElementById('p2-ans').value='';
+  document.getElementById('p2-ans').disabled=true;
+  setFB('p2-fb','','');
+  ST.p2.sel=null;
+  ST.p2.inputs={};
 
-        // ==========================================================================
-        // MECÂNICAS DA FASE 4: DESAFIO FÍSICO-MATEMÁTICO (SORTEIO E PROCESSAMENTO)
-        // ==========================================================================
-        function setupPhase4() {
-            const shuffled = [...state.p4.questionsBank].sort(() => 0.5 - Math.random());
-            state.p4.selectedQuestions = shuffled.slice(0, 3);
-            state.p4.currentIndex = 0;
+  // Texto com termos clicáveis
+  const tb=document.getElementById('p2-text');
+  tb.innerHTML=d.text;
+  tb.querySelectorAll('.i-term').forEach(el=>{
+    el.addEventListener('click',function(){
+      if(this.classList.contains('placed'))return;
+      tb.querySelectorAll('.i-term').forEach(e=>e.classList.remove('selected'));
+      ST.p2.sel=this;
+      this.classList.add('selected');
+      document.querySelectorAll('.slot:not(.filled)').forEach(s=>s.classList.add('active-slot'));
+    });
+  });
 
-            changeScreen('screen-phase4');
-            loadPhase4Question();
-        }
+  // Fórmula com slots
+  const fb=document.getElementById('p2-formula');
+  fb.innerHTML='';
+  d.layout.split(' ').forEach(part=>{
+    if(part.startsWith('[')&&part.endsWith(']')){
+      const sn=part.slice(1,-1);
+      const s=document.createElement('span');
+      s.className='slot';
+      s.dataset.slot=sn;
+      s.textContent=sn;
+      s.addEventListener('click',()=>fillSlot(s,sn));
+      fb.appendChild(s);
+    } else {
+      const sp=document.createElement('span');
+      sp.className='formula-op';
+      sp.textContent=' '+part+' ';
+      fb.appendChild(sp);
+    }
+  });
 
-        function loadPhase4Question() {
-            if (state.p4.currentIndex >= state.p4.selectedQuestions.length) {
-                clearInterval(state.timer);
-                completeGame();
-                return;
-            }
+  // Renderizar a fórmula em LaTeX no painel de suporte se KaTeX estiver pronto
+  renderMathInP2Hint(d.layout);
+}
 
-            const question = state.p4.selectedQuestions[state.p4.currentIndex];
-            document.getElementById('p4-question-title').textContent = `${state.p4.currentIndex + 1}. ${question.title}`;
+function renderMathInP2Hint(layout) {
+  // Ajusta string simples para formato matemático LaTeX
+  let latex = layout.replace('*', '\\cdot').replace('/', '\\div');
+  if(layout === "I = [V] / [R]") latex = "I = \\frac{V}{R}";
+  if(layout === "R = [V] / [I]") latex = "R = \\frac{V}{I}";
+  if(layout === "V = [R] * [I]") latex = "V = R \\cdot I";
+  
+  // Limpa colchetes para exibição estática
+  latex = latex.replace(/\[/g, '').replace(/\]/g, '');
+  
+  const hintEl = document.getElementById('p2-fb');
+  if (window.katex && hintEl) {
+    // Exibe sugestão matemática limpa de fundo
+    setFB('p2-fb', 'info', '');
+    const tempSpan = document.createElement('span');
+    hintEl.appendChild(tempSpan);
+    window.katex.render(latex, tempSpan, { throwOnError: false });
+  }
+}
 
-            const optionsBox = document.getElementById('p4-options-container');
-            optionsBox.innerHTML = '';
+function fillSlot(el,type){
+  const sel=ST.p2.sel;
+  if(!sel)return;
+  document.querySelectorAll('.slot').forEach(s=>s.classList.remove('active-slot'));
+  if(sel.dataset.t===type){
+    el.textContent=sel.dataset.v;
+    el.classList.remove('active-slot');
+    el.classList.add('filled');
+    sel.classList.remove('selected');
+    sel.classList.add('placed');
+    ST.p2.inputs[type]=parseFloat(sel.dataset.v);
+    ST.p2.sel=null;
+    if(type==='V') setLed('V',true);
+    if(type==='I') setLed('I',true);
+    if(type==='R') setLed('R',true);
+    const d=P2[ST.p2.idx];
+    if(document.querySelectorAll('.slot.filled').length===d.slots.length){
+      document.getElementById('p2-ans').disabled=false;
+      setFB('p2-fb','info','Valores encaixados corretamente! Agora use a calculadora e insira o resultado.');
+    }
+  } else {
+    el.classList.add('error');
+    ST.p2.sel=null;
+    setTimeout(()=>el.classList.remove('error'),500);
+  }
+}
 
-            question.options.forEach(option => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.textContent = option.text;
-                btn.addEventListener('click', () => evaluatePhase4Answer(btn, option.correct));
-                optionsBox.appendChild(btn);
-            });
+function verifyP2(){
+  const d=P2[ST.p2.idx];
+  const v=parseFloat(document.getElementById('p2-ans').value);
+  if(isNaN(v)){alert('Digite um valor numérico no campo de resultado.');return}
+  if(Math.abs(v-d.ans)<0.01){
+    setFB('p2-fb','ok','✓ Correto! +50 XP');
+    addXP(50);
+    setTimeout(()=>{
+      ST.p2.idx++;
+      if(ST.p2.idx<P2.length){loadP2();}
+      else{ST.phase=3;setProg(3);ST.p3.idx=0;loadP3();show('s-p3');}
+    },1400);
+  } else {
+    setFB('p2-fb','err','✗ Resultado incorreto. Refaça a conta na calculadora e tente novamente.');
+  }
+}
 
-            startPhase4Timer();
-        }
+// ═══════════════════════════════════════════════
+// FASE 3 — PRÁTICA AUTÔNOMA
+// ═══════════════════════════════════════════════
+function loadP3(){
+  const d=P3[ST.p3.idx];
+  document.getElementById('p3-idx').textContent=ST.p3.idx+1;
+  document.getElementById('p3-unit').textContent=d.unit;
+  document.getElementById('p3-ans').value='';
+  document.getElementById('p3-text').textContent=d.text;
+  
+  setFB('p3-fb','','');
 
-        function startPhase4Timer() {
-            let timeLeft = 180;
-            updateP4TimerDisplay(timeLeft);
-            clearInterval(state.timer);
+  // Renderização Dinâmica LaTeX usando o KaTeX
+  const hintEl = document.getElementById('p3-hint');
+  if (window.katex && hintEl) {
+    try {
+      window.katex.render(d.hint, hintEl, { throwOnError: false });
+    } catch {
+      hintEl.textContent = d.hint;
+    }
+  } else {
+    hintEl.textContent = d.hint;
+  }
+}
 
-            state.timer = setInterval(() => {
-                timeLeft--;
-                updateP4TimerDisplay(timeLeft);
-                if (timeLeft <= 0) {
-                    clearInterval(state.timer);
-                    evaluatePhase4Answer(null, false, true);
-                }
-            }, 1000);
-        }
+function verifyP3(){
+  const d=P3[ST.p3.idx];
+  const v=parseFloat(document.getElementById('p3-ans').value);
+  if(isNaN(v)){alert('Digite o resultado no campo.');return}
+  if(v===d.ans){
+    setFB('p3-fb','ok','✓ Correto! +100 XP');
+    addXP(100);
+    setLed(d.led,true);
+    setTimeout(()=>{
+      ST.p3.idx++;
+      if(ST.p3.idx<P3.length){loadP3();}
+      else{setLed('A',true);show('s-intro');}
+    },1400);
+  } else {
+    setFB('p3-fb','err','✗ Resultado incorreto. Verifique a fórmula de referência e tente de novo.');
+  }
+}
 
-        function updateP4TimerDisplay(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            document.getElementById('p4-timer').textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-        }
+// ═══════════════════════════════════════════════
+// DESAFIO FINAL (TIMER POR QUESTÃO)
+// ═══════════════════════════════════════════════
+function startChallenge(){
+  ST.phase=4; setProg(4);
+  ST.ch.idx=0;
+  loadCh();
+  show('s-ch');
+}
 
-        function evaluatePhase4Answer(selectedBtn, isCorrect, timeout = false) {
-            clearInterval(state.timer);
-            const options = document.querySelectorAll('#p4-options-container .option-btn');
-            
-            options.forEach(btn => btn.disabled = true);
-            const question = state.p4.selectedQuestions[state.p4.currentIndex];
+function loadCh(){
+  if(ST.ch.idx>=CH.length){
+    clearInterval(ST.timerInterval);
+    clearInterval(ST.sessionInterval); // Parar cronometragem da sessão escolar
+    ST.endTime=Date.now();
+    setLed('D',true);
+    show('s-final');
+    setTimeout(drawCert,200);
+    return;
+  }
+  const d=CH[ST.ch.idx];
+  document.getElementById('ch-idx').textContent=ST.ch.idx+1;
+  document.getElementById('ch-q').textContent=d.q;
+  const oc=document.getElementById('ch-opts');
+  oc.innerHTML='';
+  d.opts.forEach(o=>{
+    const b=document.createElement('button');
+    b.className='opt-btn';
+    b.textContent=o.t;
+    b.addEventListener('click',()=>evalCh(b,o.c));
+    oc.appendChild(b);
+  });
+  startTimer(d.timer);
+}
 
-            if (timeout) {
-                options.forEach((btn, idx) => {
-                    if (question.options[idx].correct) btn.classList.add('correct-feedback');
-                });
-            } else {
-                if (isCorrect) {
-                    selectedBtn.classList.add('correct-feedback');
-                    const timerText = document.getElementById('p4-timer').textContent;
-                    const parts = timerText.split(':');
-                    const secondsLeft = (parseInt(parts[0]) * 60) + parseInt(parts[1]);
-                    
-                    const bonus = Math.floor(secondsLeft / 5);
-                    updateScore(20 + bonus);
-                } else {
-                    selectedBtn.classList.add('error-feedback');
-                    options.forEach((btn, idx) => {
-                        if (question.options[idx].correct) btn.classList.add('correct-feedback');
-                    });
-                }
-            }
+function startTimer(dur){
+  let t=dur;
+  updTimer(t);
+  clearInterval(ST.timerInterval);
+  const tv=document.getElementById('ch-timer');
+  ST.timerInterval=setInterval(() => {
+    t--;
+    updTimer(t);
+    if(t<=10) tv.classList.add('urgent');
+    else tv.classList.remove('urgent');
+    if(t<=0){clearInterval(ST.timerInterval);evalCh(null,false,true);}
+  },1000);
+}
 
-            setTimeout(() => {
-                state.p4.currentIndex++;
-                loadPhase4Question();
-            }, 1800);
-        }
+function updTimer(s){
+  const m=Math.floor(s/60),sec=s%60;
+  document.getElementById('ch-timer').textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+}
 
-        // ==========================================================================
-        // SISTEMA DE CRIAÇÃO E PROCESSAMENTO DO CERTIFICADO SEGURO
-        // ==========================================================================
-        function generateVerificationHash(name, email, score, dateString) {
-            const payload = `${name.toUpperCase()}|${email.toLowerCase()}|${score}|${dateString}`;
-            let hash = 0;
-            for (let i = 0; i < payload.length; i++) {
-                const char = payload.charCodeAt(i);
-                hash = ((hash << 5) - hash) + char;
-                hash = hash & hash;
-            }
-            return `OHM-${Math.abs(hash).toString(16).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
-        }
+function evalCh(btn,ok,timeout=false){
+  clearInterval(ST.timerInterval);
+  const btns=document.querySelectorAll('.opt-btn');
+  btns.forEach(b=>b.disabled=true);
+  const d=CH[ST.ch.idx];
+  const tLeft=parseInt(document.getElementById('ch-timer').textContent.split(':')[1])||0;
+  if(!timeout){
+    if(ok){btn.classList.add('ok');addXP(200+tLeft*2);}
+    else{btn.classList.add('err');}
+  }
+  btns.forEach((b,i)=>{if(d.opts[i].c)b.classList.add('ok')});
+  setTimeout(()=>{ST.ch.idx++;loadCh();},1800);
+}
 
-        function completeGame() {
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('pt-BR');
-            const timeStr = now.toLocaleTimeString('pt-BR');
+// ═══════════════════════════════════════════════
+// CERTIFICADO CANVAS EM ALTA RESOLUÇÃO
+// ═══════════════════════════════════════════════
+function drawCert(){
+  const canvas=document.getElementById('cert-canvas');
+  const ctx=canvas.getContext('2d');
+  const W=640,H=460;
+  const ms=ST.endTime-ST.startTime;
+  const ts=Math.floor(ms/1000);
+  const tm=Math.floor(ts/60),tss=ts%60;
+  const now=new Date();
+  const ds=now.toLocaleDateString('pt-BR');
+  const hs=now.toLocaleTimeString('pt-BR');
+  const hash=genHash(ST.student.name,ST.student.email,ST.score,ds);
 
-            document.getElementById('cert-student-name').textContent = state.student.name.toUpperCase();
-            document.getElementById('cert-student-name-meta').textContent = state.student.name;
-            document.getElementById('cert-student-email-meta').textContent = state.student.email;
-            document.getElementById('cert-score').textContent = state.score;
-            document.getElementById('cert-date').textContent = dateStr;
-            document.getElementById('cert-time').textContent = timeStr;
+  // Background
+  ctx.fillStyle='#0f172a';
+  ctx.fillRect(0,0,W,H);
 
-            const authHash = generateVerificationHash(state.student.name, state.student.email, state.score, dateStr);
-            document.getElementById('cert-hash').textContent = `Assinatura de Validação Digital: ${authHash}`;
+  // Subtle grid texture
+  ctx.strokeStyle='rgba(255,255,255,0.03)';
+  ctx.lineWidth=1;
+  for(let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
 
-            state.activePhase = 5;
-            updateProgressUI();
+  // Outer border
+  ctx.strokeStyle='#1d4ed8';
+  ctx.lineWidth=8;
+  ctx.strokeRect(12,12,W-24,H-24);
+  ctx.strokeStyle='#3b82f6';
+  ctx.lineWidth=1.5;
+  ctx.strokeRect(20,20,W-40,H-40);
 
-            changeScreen('screen-final');
-        }
-    </script>
+  // Seal circle
+  ctx.fillStyle='#1e3a8a';
+  ctx.beginPath();ctx.arc(W/2,88,40,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#3b82f6';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(W/2,88,40,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='#93c5fd';
+  ctx.font='bold 44px Georgia,serif';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('Ω',W/2,85);
+
+  // Title
+  ctx.fillStyle='#93c5fd';
+  ctx.font='bold 20px Georgia,serif';
+  ctx.textBaseline='alphabetic';
+  ctx.fillText('CERTIFICADO DE CONCLUSÃO',W/2,158);
+
+  ctx.fillStyle='#475569';
+  ctx.font='10px monospace';
+  ctx.fillText('LABORATÓRIO EXPERIMENTAL DE ELETRODINÂMICA — LEI DE OHM',W/2,178);
+
+  // Body
+  ctx.fillStyle='#94a3b8';
+  ctx.font='13px sans-serif';
+  ctx.fillText('Certificamos que o estudante',W/2,215);
+
+  ctx.fillStyle='#3b82f6';
+  ctx.font='bold 24px sans-serif';
+  ctx.fillText(ST.student.name.toUpperCase(),W/2,250);
+
+  // Divider
+  ctx.strokeStyle='#1e3a8a';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(160,263);ctx.lineTo(W-160,263);ctx.stroke();
+
+  ctx.fillStyle='#94a3b8';
+  ctx.font='13px sans-serif';
+  ctx.fillText('concluiu com êxito as etapas práticas e de desafio sobre a Lei de Ohm.',W/2,290);
+
+  // Score
+  ctx.fillStyle='#34d399';
+  ctx.font='bold 17px sans-serif';
+  ctx.fillText('Aproveitamento: '+String(ST.score).padStart(4,'0')+' XP',W/2,328);
+
+  // Details
+  ctx.fillStyle='#64748b';
+  ctx.font='11px monospace';
+  ctx.fillText(ST.student.email,W/2,362);
+  ctx.fillText('Duração total da sessão: '+tm+'min e '+tss+'s',W/2,382);
+  ctx.fillText('Concluído em: '+ds+' às '+hs,W/2,402);
+
+  ctx.fillStyle='#334155';
+  ctx.font='10px monospace';
+  ctx.fillText('Código de autenticação: '+hash,W/2,432);
+}
+
+function genHash(n,e,s,d){
+  const p=n.toUpperCase()+'|'+e+'|'+s+'|'+d;
+  let h=0;
+  for(let i=0;i<p.length;i++){h=((h<<5)-h)+p.charCodeAt(i);h=h&h;}
+  return'OHM-'+Math.abs(h).toString(16).toUpperCase()+'-'+Math.floor(1000+Math.random()*9000);
+}
+
+function dlCert(){
+  const c=document.getElementById('cert-canvas');
+  const l=document.createElement('a');
+  l.download='Certificado-Lei-de-Ohm-'+ST.student.name.replace(/\s+/g,'-')+'.png';
+  l.href=c.toDataURL('image/png');
+  l.click();
+}
+
+async function copyCert(){
+  try{
+    const c=document.getElementById('cert-canvas');
+    c.toBlob(async b=>{
+      const it=new ClipboardItem({'image/png':b});
+      await navigator.clipboard.write([it]);
+      alert('✓ Imagem copiada! Cole com Ctrl+V no Word, Teams ou e-mail.');
+    });
+  }catch{
+    alert('Seu navegador bloqueou a área de transferência automática. Use o botão de download para obter o arquivo.');
+  }
+}
+</script>
 </body>
 </html>
